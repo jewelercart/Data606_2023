@@ -1,0 +1,51 @@
+---
+title: "wk2 assignment"
+author: "Frederick Jones"
+date: "2023-09-11"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load the data of survey
+
+The data is in excel sheet and the data is to be loaded from the sheet. 
+
+```{r Load Movie_Ratings data}
+data <- read.csv("https://raw.githubusercontent.com/jewelercart/Data606_2023/main/Movie_Ratings%20.csv")
+data
+```
+
+## Saving data to MySql
+```{r}
+database_name ='student_records'
+user_name = 'jewelercart'
+password = "567juhmm_"
+```
+
+
+```{r}
+#install.packages("RMySQL")
+library(RMySQL)
+con <- dbConnect(RMySQL::MySQL(), host = "localhost", dbname = database_name, user = user_name, password=password)
+dbSendQuery(con, "SET GLOBAL local_infile = true;") 
+dbWriteTable(con, "Movie_Ratings", data, overwrite = TRUE)
+dbDisconnect(con)
+```
+## Getting data from database from server running on local host. 
+
+```{r}
+
+con <- dbConnect(RMySQL::MySQL(), host = "localhost", dbname = database_name, user = user_name, password=password)
+df=dbReadTable(con, 'Movie_Ratings')
+dbDisconnect(con)
+df
+```
+
+## Saving data on a server and retreiving data from a server is something that every data scientist do in his career. 
+In this assignment, the practice of handling data to and fro a server was achieved. However, the server was running on local host. But the same procedure might be followed to get data from a remote server.
