@@ -1,0 +1,93 @@
+---
+title: "Extra Credit"
+author: "Frederick Jones"
+date: "2023-11-12"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load the data 
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+
+df = read.csv('https://raw.githubusercontent.com/acatlin/data/master/classification_model_performance.csv')
+head(df)
+```
+## Task 1
+Calculate and state the null error rate for the provided classification_model_performance.csv dataset. Create a plot showing the data distribution of actual explanatory variable. 
+
+**Answer. The null rate may be defined as the measure of how wrong the classfier model might be when it forecasts the majority of the class.**
+
+**Here the majority of class is 0 and total number of classes are 181. If our model predicts only the 0 for all 181 classes, then the null error rate is the error rate in those predictions.**
+
+```{r}
+class_counts <- table(df$class)
+null_error_rate <- 1 - max(class_counts) / sum(class_counts)
+cat("Null Error Rate:", null_error_rate)
+```
+**Hence the null error rate is 31.49%. This might be taken as the base to compare the different classification models.**
+
+## Plot of class which is an explanatory variable
+
+```{r}
+df$class = as.factor(df$class)
+ggplot(df, mapping = aes(x= class, fill=class))+
+  geom_bar()+
+  geom_text(stat = "count", aes(label = scales::percent(after_stat(count)/sum(count))) )
+```
+
+
+## Task 2
+Analyze the data to determine the true positive, true negative, false positive, false, negative values for the dataset, using scored.probability thresholds of 0.2, 0.5 and 0.8. Display your results in a table, with the probability threshold columns and TP, FP, TN and FN values in rows. 
+
+**Answer.**
+
+```{r}
+confMatrixTh<- function(data, threshold) {
+  data %>%
+    mutate(predicted = ifelse(scored.probability >= threshold, 1, 0)) %>%
+    summarize(
+      TP = sum(class == 1 & predicted == 1),
+      TN = sum(class == 0 & predicted == 0),
+      FP = sum(class == 0 & predicted == 1),
+      FN = sum(class == 1 & predicted == 0)
+    )
+}
+
+thresholds <- c(0.2, 0.5, 0.8)
+confusion.table <- data.frame(thresholds)
+confusion.table<-confusion.table|>
+  rowwise() %>%
+  mutate(confMatrixTh(df, thresholds))
+confusion.table <- t(confusion.table)
+colnames(confusion.table)<- c('thr 0.2', 'thr 0.5', 'thr 0.8')
+confusion.table<- confusion.table[-1, ]
+confusion.table
+```
+## Task 3
+Create a table showing—for each of the three thresholds—the accuracy, precision, recall, and F1 scores.
+
+**Answer**
+```{r}
+size <-dim(df) 
+Accuracy<- (confusion.table[1, ]+confusion.table[2, ])/size[1]
+Precision<- (confusion.table[1, ]+confusion.table[3, ])/size[1]
+Recall <- (confusion.table[1, ]+confusion.table[4, ])/size[1]
+F1 <- (2*Precision*Recall)/(Precision+Recall)
+metrics<- data.frame(rbind(Accuracy,Precision, Recall, F1 ))
+colnames(metrics)<- c('thr 0.2', 'thr 0.5', 'thr 0.8')
+row.names(metrics)<- c('Accuracy', 'Precision','Recall', 'F1' )
+metrics
+```
+
+# Task 4 
+Provide at least one example use case where (a) an 0.2 scored probability threshold would be preferable, and (b) an 0.8 scored probability threshold would be preferable.
+
+**Answer (a)**
+ 
+If our goal is precision then threshold 0.2 can be preferred since precision is maximum for threshold 0.2 which is 0.55248 and if we focus on a balance between false positive and false negative then threshold 0.8 can be preferred. 
