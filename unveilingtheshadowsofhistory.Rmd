@@ -1,0 +1,166 @@
+---
+title: 'Unveiling the Shadows of History: Exploring the Largest Dataset of Slave Records
+  Online to Quantify the Human Toll of the Americas'' Slave Trade Industry'
+author: "Frederick Jones"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+## Load the required libraries
+```{r}
+library(tidyverse)
+```
+
+
+## Load the data 
+```{r}
+data <- read.csv('I-Am1.0.csv')
+head(data)
+```
+
+
+## Filtering the data for the slaves disembarked to the Americas
+```{r}
+library(dplyr)
+data_America <- data|> filter(
+   (fate2==1)
+)
+head(data_America)
+```
+
+## Find the number of slaves that arrived in the Americas and the number of slaves sold in the Americas. 
+```{r}
+num_slave_arrived <- sum(data_America$slaarriv, na.rm = TRUE)
+sprintf("Number of slave arrived in America : %d",num_slave_arrived)
+slave_sold_America <- data_America|> filter(fate==49)|>
+  summarize(
+  "Number of unsold slaves in America" = sum(slaarriv, na.rm = TRUE ))
+sprintf("The approximated number of slaves sold in America is %d",slave_sold_America$`Number of slaves sold in America`)
+unslaved<- num_slave_arrived - slave_sold_America 
+unslaved
+#Comments:
+#The findings represents that the number of slave arrived in America is 310383 while the approximated number of slaves sold in America is 261053 and the difference is 49330 that is unslaved.
+```
+
+## Select the important columns related to slaves characteristics 
+```{r}
+library(dplyr)
+newData1 <- data_America[, c('tslavesd','national', 'slaximp','slaarriv','female1','child1', 'female3', 'child3', 'female7','child7','adult1', 'adult3', 'adult7')]
+head(newData1)
+
+#Cleaned the newdata
+newData <- data_America[, c('slaximp','slaarriv')]
+head(newData)
+#Comments: In the newdata1, we found that there are 'NA' in tslavesed and female1 and in other variables, we did not see any value such as when we look at the first row,it's found that 82 slaves imputed and out of 82 only 80 disembarked on Americas ports. But the proportion of adults, children and women among them are not given. SO, that is why we  only find number of slaves arrived in America and total number of slaves imputed and that is represent as newData. 
+```
+
+# Linear Regression analysis
+```{r}
+reg<-lm(slaarriv~slaximp, data = data)
+summary(reg)
+#Comments:The findings shows that the p-value of slaximp is <2e-16 that is less than 0.05 so, we can conclude that there is a statistically significant impact of the number of slaves imputed(independent variable) on the number of slaves arrived in America(dependent variable).
+```
+
+# Visualization
+```{r}
+library(ggplot2)
+summary_slaves<-newData|>reframe(
+  Slave_Status = c("Embarked","Arrived in America"),
+  Number_of_Slaves = c(sum(slaximp, na.rm = TRUE), sum(slaarriv, na.rm = TRUE))
+  )
+summary_slaves
+#Comments: The findings represents that there are total 455193 number of slaves who were initially embarked on ships and there are 310383 subset of slaves who successfully arrived in America. The difference between Embarked and Arrived in America is 144,810 which means there are 144,810 number of slaves who did not arrive in America.
+```
+
+## Visualization
+```{r}
+require(scales)
+ggplot(data = summary_slaves, aes(x=Slave_Status, y=Number_of_Slaves, fill=Slave_Status))+
+  geom_col()+
+  scale_y_continuous(labels = scales::comma)
+#Comments: The figure represents that number of slaves are higher in those who were initially embarked on ships while there are less number of slaves who arrived in america.
+```
+
+## Gender wise slaves and number of children among the slaves.
+```{r}
+slaves_Gend_dis<-newData1|>reframe(
+  Slave_Status = c("Male", "Females","Children"),
+  Number_of_Slaves = c( sum(slaarriv, na.rm = TRUE)
+                        -round((sum(female7, na.rm = TRUE))),
+                       round(sum(female7, na.rm = TRUE)),
+                       round(sum(child7, na.rm = TRUE)) )
+  )
+slaves_Gend_dis
+#Comments: The findings revealed that there are 292676 male salves, 17707 female slaves and 22706	children who are slaves. And it can be seen that the males number of slaves are higher than females and children.
+```
+
+# Merge country code with country name
+```{r}
+national <- c(1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 24, 25, 26, 27)
+country<- c("Spain", "Uruguay", "Portugal", "Brazil", "Great Britain", "Netherlands", "U.S.A.",
+             "France", "Denmark", "Hanse Towns, Brandenburg", "Sweden", "Norway", "Argentina",
+             "Russia", "Sardinia", "Mexico", "Genoa", "Duchy of Courland", "Prussia", "Bremen")
+countryData <- data.frame(national = national, own_country = country)
+head(countryData)
+#Comments: It can be seen that the country code with country name.
+```
+
+# Merge ship data with national
+```{r}
+ships_data<-newData1|> reframe(
+  Nation =  c("Spain", "Uruguay", "Portugal", "Brazil", "Great Britain", "Netherlands", "U.S.A.",
+             "France", "Denmark", "Hanse Towns, Brandenburg", "Sweden", "Norway", "Argentina",
+             "Russia", "Sardinia", "Mexico", "Genoa", "Duchy of Courland", "Prussia", "Bremen", 'NA'),
+  Number_of_Ships = c(sum(national==1, na.rm = TRUE), sum(national==2, na.rm = TRUE),
+                      sum(national==4, na.rm = TRUE), sum(national==5, na.rm = TRUE),
+                      sum(national==7, na.rm = TRUE), sum(national==8, na.rm = TRUE),
+                      sum(national==9, na.rm = TRUE), sum(national==10, na.rm = TRUE), 
+                      sum(national==11, na.rm = TRUE), sum(national==12, na.rm = TRUE), 
+                      sum(national==13, na.rm = TRUE), sum(national==14, na.rm = TRUE),
+                      sum(national==16, na.rm = TRUE), sum(national==17, na.rm = TRUE), 
+                      sum(national==18, na.rm = TRUE), sum(national==19, na.rm = TRUE), 
+                      sum(national==24, na.rm = TRUE), sum(national==25, na.rm = TRUE), 
+                      sum(national==26, na.rm = TRUE), sum(national==27, na.rm = TRUE), 
+                      sum(is.na(national)))
+)
+ships_data
+#Comments: The findings tell that 3905 number of ships trading slaves are registered in the Great Britain. US registered number of ships involved in slave trade are 861,which is less than Great Britain. It can also be seen that 1479 number of ships trading slaves are registered in the Spain that is on second number.
+```
+
+# Visualization
+```{r}
+require(scales)
+ggplot(data = ships_data, aes(x=Nation, y= Number_of_Ships, fill=Nation))+
+  geom_col()+
+  theme(axis.text.x = element_text(angle = 90, hjust=1))+
+  labs(title = "Owner of ships involved in slave trade", 
+       y ="Number of Ships",
+       x = "Nation of ship")
+#Comments: The graph is also representing that Great Britain number of ships are on top carrier of slaves, after that Spain and at last US. These number of ships forcefully captured people and traded them in these countries.
+```
+
+# Ships with slaves captured by the US and Greater Britain, Spain, France. To do this, the following information is useful: 
+fate =11  =>   Captured by British (after embarkation of slaves)
+fate =15  =>   Captured by Spanish (after embarkation of slaves)
+fate =51  =>   Captured by French  (after embarkation of slaves)
+fate =161  =>   Captured by USA (after embarkation of slaves)
+```{r}
+data|> group_by(fate)|>
+  summarize(
+    total_ship = n())|>
+  filter(
+    fate==11 | fate ==15 | fate == 51 | fate == 161
+  )
+#Comments: It can also be seen that how many Ships with slaves captured by the US and Greater Britain, Spain, France. The results shows that there are only 4 ships with slaves captured by British, 5 ships with slave captured by Spanish, 2 ships with slaves captured by French and only 4 ships with slaves captured by USA.
+```
+
+## Total number of slaves arrived in America is the total number of slaves in the variable 'slaarriv' 
+This can be done using the sum() but there are na values in the column 'slaarriv' so we have to use na.rm=TRUE inside sum()
+
+```{r}
+num_slave_arrived <- sum(newData$slaarriv, na.rm = TRUE)
+sprintf("Number of slaves that arrived in the Americas using the data are %d", num_slave_arrived)
+#Comments: It can be seen that there are 310383 Number of slaves arrived in America using the data.
+```
