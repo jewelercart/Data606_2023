@@ -3,11 +3,73 @@ title: 'Unveiling the Shadows of History: Exploring the Largest Dataset of Slave
   Online to Quantify the Human Toll of the Americas'' Slave Trade Industry'
 author: "Frederick Jones"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
+### Data Preparation
 
+```{r setup, echo=TRUE, results='hide', warning=FALSE, message=FALSE}
+library(tidyverse)
+library(here)
+```
+
+
+### Abstract 
+
+The trafficking of enslaved Africans stands as a somber chapter in human history, leaving a lasting impact whose repercussions are felt even in contemporary times. The shadows cast by this dark period persist in the socio-cultural fabric of societies around the world. In an effort to shed light on the magnitude of this historical tragedy, our research project embarks on a comprehensive exploration of the largest dataset of slave records available online.
+
+The primary objective of this undertaking is to delve into official documentation, meticulously examining and quantifying the total number of enslaved Africans who endured the harrowing journey across the Atlantic, bound for the Americas' slave trade industry. By leveraging advanced data science methodologies, we aim to unveil the true extent of human suffering and displacement during this epoch.
+
+The enormity of this historical injustice necessitates a rigorous and meticulous approach. Our investigation goes beyond the mere acknowledgment of the existence of enslaved individuals; it strives to provide a quantitative understanding of the scale of this transatlantic atrocity. Through careful analysis and calculation, we seek to offer a comprehensive assessment of the human toll exacted by the Americas' slave trade industry.
+
+As we navigate the vast expanse of historical records, we recognize the responsibility that comes with interpreting the narratives of those who endured unimaginable hardships. This project serves not only as a statistical endeavor but as a testament to the resilience and strength of those whose voices were silenced by the brutality of the slave trade. In quantifying the total number of enslaved Africans, we contribute to a broader understanding of this dark chapter, fostering awareness and acknowledgment of the profound impact it has left on the world we inhabit today.
+
+### Cases 
+
+That that dataset has 11521 cases,each providing detailed information about the trafficking of enslaved.
+
+Within this dataset, there are 126 variables, offering a comprehensive scope for analysis.
+
+
+### Data collection 
+
+The dataset is hosted on the Slave Voyages website, a repository for historical information related to the transatlantic slave trade.
+
+
+
+### Type of study 
+
+This is an observational study. It will analyze data collected from official documents and historical sources organized into a dataset.
+
+Unfourtnaly, many informations are missing.
+
+
+### Data Source 
+
+The data set has been made available by Slave Voyages at the following [link](https://www.slavevoyages.org/american/downloads#intra-american-database-downloads/0/en/)
+
+
+### Dependent Variable
+
+Two variables about number of slaves will be used. This variavbles will give us insights about how was the  trafficking transported.
+
+**tslavesd:**`Total slaves on board at departure from last slaving port` - numeric variable
+**slaarrivs:** `Total slaves arrived at first port of disembarkation` - numeric variable
+
+
+
+### Independent Variable(s)
+
+- **national**:`Country in which ship registered ` - categorical variable
+- **portdep**: `Port of departure` - categorical variable
+- **majbuypt**: `Principal place of slave purchase` -- categorical variable
+- **majselpt**: `Principal port of slave disembarkation` -- categorical variable
+- **yearam**: `Year of arrival at port of disembarkation` - categorical variable
+
+### Relevant summary statistics 
+
+#### Import Dataset
 ## Load the required libraries
 ```{r}
 library(tidyverse)
